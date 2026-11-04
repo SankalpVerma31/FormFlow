@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('History')}"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <main class="main">
+        <div th:replace="~{fragments/layout :: flash}"></div>
+        <div class="page-header"><div><h1>Submission history</h1><p class="subtitle">Everything you have submitted.</p></div></div>
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead><tr><th>Event</th><th>Submitted at</th><th>Event status</th><th></th></tr></thead>
+                    <tbody>
+                    <tr th:each="s : ${submissions}">
+                        <td class="fw-semibold" th:text="${s.event.title}"></td>
+                        <td th:text="${#temporals.format(s.submittedAt, 'dd MMM yyyy, hh:mm a')}"></td>
+                        <td><span th:replace="~{fragments/layout :: status(${s.event.status})}"></span></td>
+                        <td class="text-end text-nowrap">
+                            <a class="btn btn-sm btn-light" th:href="@{/participant/submissions/{id}(id=${s.id})}">My answers</a>
+                            <a class="btn btn-sm btn-light" th:href="@{/e/{t}/results(t=${s.event.publicToken})}">Results</a>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(submissions)}"><td colspan="4" class="empty-state"><i class="bi bi-inbox"></i>No submissions yet.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

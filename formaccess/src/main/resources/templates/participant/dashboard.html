@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('My forms')}"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <main class="main">
+        <div th:replace="~{fragments/layout :: flash}"></div>
+        <div class="page-header">
+            <div><h1>My forms</h1><p class="subtitle">Only forms you are eligible for are listed here.</p></div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-lg-3"><div class="card stat-card"><div class="stat-label">To do</div><div class="stat-value text-warning" th:text="${#lists.size(dash.pending)}">0</div></div></div>
+            <div class="col-6 col-lg-3"><div class="card stat-card"><div class="stat-label">Submitted</div><div class="stat-value text-success" th:text="${#lists.size(dash.submitted)}">0</div></div></div>
+            <div class="col-6 col-lg-3"><div class="card stat-card"><div class="stat-label">Opening soon</div><div class="stat-value" th:text="${#lists.size(dash.upcoming)}">0</div></div></div>
+            <div class="col-6 col-lg-3"><div class="card stat-card"><div class="stat-label">Closed</div><div class="stat-value text-danger" th:text="${#lists.size(dash.closed)}">0</div></div></div>
+        </div>
+
+        <h5 class="fw-bold mb-3"><i class="bi bi-hourglass-split text-warning me-2"></i>Pending – please fill</h5>
+        <div class="row g-3 mb-4">
+            <div class="col-md-6 col-xl-4" th:each="v : ${dash.pending}">
+                <div class="card event-card h-100"><div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between mb-2"><h6 class="fw-bold mb-0" th:text="${v.event.title}"></h6>
+                        <span th:replace="~{fragments/layout :: status(${v.event.status})}"></span></div>
+                    <p class="small text-muted flex-grow-1" th:text="${v.event.description}"></p>
+                    <div class="small mb-3"><i class="bi bi-alarm me-1 text-danger"></i>Due
+                        <strong th:text="${#temporals.format(v.event.deadlineAt, 'dd MMM yyyy, hh:mm a')}"></strong></div>
+                    <a class="btn btn-primary" th:href="@{/e/{t}(t=${v.event.publicToken})}">
+                        <span th:text="${v.submitted} ? 'Submit again' : 'Fill form'">Fill form</span> <i class="bi bi-arrow-right"></i></a>
+                </div></div>
+            </div>
+            <div class="col-12" th:if="${#lists.isEmpty(dash.pending)}"><div class="card empty-state"><i class="bi bi-check2-circle"></i>Nothing pending. You're all caught up!</div></div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="card h-100"><div class="card-header"><i class="bi bi-check-circle text-success me-2"></i>Submitted</div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item" th:each="v : ${dash.submitted}">
+                            <div class="fw-semibold" th:text="${v.event.title}"></div>
+                            <div class="small d-flex justify-content-between"><span th:replace="~{fragments/layout :: status(${v.event.status})}"></span>
+                                <a th:href="@{/e/{t}/results(t=${v.event.publicToken})}">Results</a></div>
+                        </li>
+                        <li class="list-group-item text-muted small" th:if="${#lists.isEmpty(dash.submitted)}">No submissions yet.</li>
+                    </ul></div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card h-100"><div class="card-header"><i class="bi bi-calendar-plus me-2"></i>Opening soon</div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item" th:each="v : ${dash.upcoming}">
+                            <div class="fw-semibold" th:text="${v.event.title}"></div>
+                            <div class="small text-muted">Opens <span th:text="${#temporals.format(v.event.startAt, 'dd MMM, hh:mm a')}"></span></div>
+                        </li>
+                        <li class="list-group-item text-muted small" th:if="${#lists.isEmpty(dash.upcoming)}">Nothing scheduled.</li>
+                    </ul></div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card h-100"><div class="card-header"><i class="bi bi-lock text-danger me-2"></i>Closed</div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item" th:each="v : ${dash.closed}">
+                            <div class="fw-semibold" th:text="${v.event.title}"></div>
+                            <div class="small d-flex justify-content-between">
+                                <span th:class="${v.submitted} ? 'text-success' : 'text-danger'" th:text="${v.submitted} ? 'You submitted' : 'Missed'"></span>
+                                <a th:href="@{/e/{t}/results(t=${v.event.publicToken})}">Results</a></div>
+                        </li>
+                        <li class="list-group-item text-muted small" th:if="${#lists.isEmpty(dash.closed)}">No closed forms.</li>
+                    </ul></div>
+            </div>
+        </div>
+    </main>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

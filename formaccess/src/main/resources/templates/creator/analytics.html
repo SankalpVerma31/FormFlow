@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Analytics')}"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <main class="main" id="analytics" th:attr="data-event-id=${event.id}">
+        <div th:replace="~{fragments/layout :: flash}"></div>
+        <div class="page-header">
+            <div><h1>Analytics</h1><p class="subtitle" th:text="${event.title}"></p></div>
+            <a class="btn btn-light" th:href="@{/creator/events/{id}(id=${event.id})}"><i class="bi bi-arrow-left"></i> Back to event</a>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-lg-3"><div class="card stat-card"><div class="stat-label">Eligible users</div><div class="stat-value" th:text="${stats.eligible}">0</div></div></div>
+            <div class="col-6 col-lg-3"><div class="card stat-card"><div class="stat-label">Responses</div><div class="stat-value text-success" th:text="${stats.submitted}">0</div></div></div>
+            <div class="col-6 col-lg-3"><div class="card stat-card"><div class="stat-label">Pending</div><div class="stat-value text-warning" th:text="${stats.pending}">0</div></div></div>
+            <div class="col-6 col-lg-3"><div class="card stat-card"><div class="stat-label">Submission rate</div><div class="stat-value" th:text="${stats.percentage + '%'}">0%</div></div></div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-lg-8"><div class="card h-100"><div class="card-header">Submission timeline</div>
+                <div class="card-body"><div class="chart-loading small text-muted">Loading chart…</div><div style="height:260px"><canvas id="timelineChart"></canvas></div></div></div></div>
+            <div class="col-lg-4"><div class="card h-100"><div class="card-header">Responses by department</div>
+                <div class="card-body"><div style="height:260px"><canvas id="deptChart"></canvas></div></div></div></div>
+        </div>
+
+        <h5 class="fw-bold mb-3">Per question</h5>
+        <div class="row g-4 mb-5">
+            <div class="col-lg-6" th:each="qs : ${stats.questions}">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between">
+                        <span th:text="${qs.questionText}">Question</span>
+                        <span class="small text-muted" th:text="${qs.responses + ' answers'}"></span>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${qs.average != null}" class="row text-center mb-2">
+                            <div class="col"><div class="stat-label">Average</div><div class="fs-4 fw-bold" th:text="${qs.average}"></div></div>
+                            <div class="col"><div class="stat-label">Minimum</div><div class="fs-4 fw-bold" th:text="${qs.minimum}"></div></div>
+                            <div class="col"><div class="stat-label">Maximum</div><div class="fs-4 fw-bold" th:text="${qs.maximum}"></div></div>
+                        </div>
+                        <th:block th:unless="${#lists.isEmpty(qs.breakdown)}">
+                            <div style="height:200px"><canvas th:id="${'qchart-' + qs.questionId}"></canvas></div>
+                            <table class="table table-sm mt-3 mb-0">
+                                <tr th:each="b : ${qs.breakdown}"><td th:text="${b.label}"></td>
+                                    <td class="text-end fw-semibold" th:text="${b.count}"></td>
+                                    <td class="text-end text-muted" th:text="${b.percentage + '%'}"></td></tr>
+                            </table>
+                        </th:block>
+                        <div th:if="${qs.average == null and #lists.isEmpty(qs.breakdown)}" class="small text-muted">
+                            Text answers are listed on the <a th:href="@{/creator/events/{id}/submissions(id=${event.id})}">Submissions</a> page.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================== public summary settings ===================== -->
+        <div class="card" id="summaries">
+            <div class="card-header"><i class="bi bi-globe me-2"></i>What can participants see?</div>
+            <div class="card-body">
+                <p class="small text-muted">Choose which <strong>aggregated</strong> results eligible participants may view at
+                    <code th:text="${'/e/' + event.publicToken + '/results'}"></code>. Individual answers are never shown.</p>
+                <form th:action="@{/creator/events/{id}/summaries(id=${event.id})}" method="post">
+                    <table class="table align-middle">
+                        <thead><tr><th>Summary</th><th>Question</th><th style="width:260px">Visibility</th></tr></thead>
+                        <tbody>
+                        <tr th:each="o : ${summaryOptions}">
+                            <td th:text="${o.type.label}"></td>
+                            <td class="small text-muted" th:text="${o.questionText ?: 'Whole event'}"></td>
+                            <td><select class="form-select form-select-sm" th:name="${o.fieldName}">
+                                <option th:each="v : ${visibilities}" th:value="${v}" th:text="${v}" th:selected="${v == o.visibility}"></option>
+                            </select></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <button class="btn btn-primary" type="submit"><i class="bi bi-check2 me-1"></i>Save visibility</button>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script th:src="@{/js/analytics.js}"></script>
+</body>
+</html>

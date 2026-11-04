@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${event.title})}"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <main class="main">
+        <div class="form-narrow">
+            <div class="form-hero text-center py-5" th:with="a=${access.name()}">
+                <div class="mb-3" style="font-size: 3rem">
+                    <i th:if="${a == 'NOT_ELIGIBLE' or a == 'ACCOUNT_INACTIVE'}" class="bi bi-shield-x text-danger"></i>
+                    <i th:if="${a == 'CLOSED'}" class="bi bi-lock text-danger"></i>
+                    <i th:if="${a == 'NOT_STARTED'}" class="bi bi-calendar-event text-warning"></i>
+                    <i th:if="${a == 'ALREADY_SUBMITTED'}" class="bi bi-check-circle text-success"></i>
+                </div>
+                <h2 class="fw-bold" th:text="${a == 'NOT_ELIGIBLE' ? 'Access denied' : (a == 'CLOSED' ? 'Deadline passed' : (a == 'NOT_STARTED' ? 'Not open yet' : (a == 'ALREADY_SUBMITTED' ? 'Already submitted' : 'Not available')))}">Status</h2>
+                <p class="lead text-muted" th:text="${access.message}">Message</p>
+                <p class="fw-semibold" th:text="${event.title}"></p>
+                <p th:if="${a == 'NOT_STARTED'}" class="small">Opens on <strong th:text="${#temporals.format(event.startAt, 'dd MMM yyyy, hh:mm a')}"></strong> IST.</p>
+                <p th:if="${a == 'CLOSED'}" class="small">Closed on
+                    <strong th:text="${#temporals.format(event.closedAt != null ? event.closedAt : event.deadlineAt, 'dd MMM yyyy, hh:mm a')}"></strong> IST.</p>
+
+                <div class="d-flex flex-wrap justify-content-center gap-2 mt-4">
+                    <a class="btn btn-primary" th:href="@{/participant}">Go to my forms</a>
+                    <a class="btn btn-outline-primary" th:if="${a == 'CLOSED' or a == 'ALREADY_SUBMITTED'}" th:href="@{/e/{t}/results(t=${event.publicToken})}">View results</a>
+                    <a class="btn btn-outline-secondary" th:each="s : ${mySubmissions}" th:href="@{/participant/submissions/{id}(id=${s.id})}">
+                        My answers <span th:if="${#lists.size(mySubmissions) > 1}" th:text="${'#' + s.attemptNo}"></span></a>
+                    <a class="btn btn-dark" th:if="${canManage}" th:href="@{/creator/events/{id}(id=${event.id})}">Manage this event</a>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

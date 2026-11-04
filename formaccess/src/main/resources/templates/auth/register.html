@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Register')}"></head>
+<body>
+<div class="auth-wrap">
+    <div class="auth-card" style="max-width:560px">
+        <div class="text-center mb-4">
+            <a th:href="@{/}" class="text-decoration-none"><h2 class="fw-bold text-primary"><i class="bi bi-ui-checks-grid me-2"></i>FormAccess</h2></a>
+            <p class="text-muted">Create your account</p>
+        </div>
+        <div class="card p-4">
+            <form th:action="@{/register}" th:object="${registerForm}" method="post" novalidate data-loading="Creating account...">
+                <div class="mb-3">
+                    <label class="form-label">Full name</label>
+                    <input type="text" class="form-control" th:field="*{fullName}" th:errorclass="is-invalid">
+                    <div class="invalid-feedback" th:errors="*{fullName}"></div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">College email</label>
+                    <input type="email" class="form-control" th:field="*{email}" th:errorclass="is-invalid">
+                    <div class="invalid-feedback" th:errors="*{email}"></div>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-7">
+                        <label class="form-label">Department</label>
+                        <select class="form-select" th:field="*{deptId}" th:errorclass="is-invalid">
+                            <option value="">-- Choose --</option>
+                            <option th:each="d : ${departments}" th:value="${d.id}" th:text="${d.code + ' – ' + d.name}">CSE</option>
+                        </select>
+                        <div class="invalid-feedback" th:errors="*{deptId}"></div>
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label">Year of study</label>
+                        <select class="form-select" th:field="*{yearOfStudy}" th:errorclass="is-invalid">
+                            <option value="">-- Choose --</option>
+                            <option th:each="y : ${#numbers.sequence(1,5)}" th:value="${y}" th:text="${'Year ' + y}">1</option>
+                        </select>
+                        <div class="invalid-feedback" th:errors="*{yearOfStudy}"></div>
+                    </div>
+                </div>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-control" th:field="*{password}" th:errorclass="is-invalid">
+                        <div class="invalid-feedback" th:errors="*{password}"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Confirm password</label>
+                        <input type="password" class="form-control" th:field="*{confirmPassword}" th:errorclass="is-invalid">
+                        <div class="invalid-feedback" th:errors="*{confirmPassword}"></div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg w-100">Create account</button>
+            </form>
+            <p class="text-center mt-3 mb-0 small">Already registered? <a th:href="@{/login}">Log in</a></p>
+        </div>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

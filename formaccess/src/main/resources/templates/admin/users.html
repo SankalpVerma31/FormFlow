@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Users')}"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <main class="main">
+        <div th:replace="~{fragments/layout :: flash}"></div>
+        <div class="page-header">
+            <div><h1>Users</h1><p class="subtitle">Add, edit, promote or deactivate accounts.</p></div>
+            <a class="btn btn-primary" th:href="@{/admin/users/new}"><i class="bi bi-person-plus me-1"></i> Add user</a>
+        </div>
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Dept</th><th>Year</th><th>Role</th><th>Status</th><th>Registered</th><th class="text-end">Actions</th></tr></thead>
+                    <tbody>
+                    <tr th:each="u : ${users}">
+                        <td class="text-muted" th:text="${u.id}"></td>
+                        <td class="fw-semibold" th:text="${u.fullName}"></td>
+                        <td th:text="${u.email}"></td>
+                        <td th:text="${u.departmentCode != null ? u.departmentCode : '—'}"></td>
+                        <td th:text="${u.yearOfStudy != null ? u.yearOfStudy : '—'}"></td>
+                        <td><span th:replace="~{fragments/layout :: role(${u.role})}"></span></td>
+                        <td><span class="badge rounded-pill" th:classappend="${u.active} ? 'status-open' : 'status-closed'" th:text="${u.accountStatus}"></span></td>
+                        <td class="small text-muted" th:text="${#temporals.format(u.registeredAt, 'dd MMM yyyy')}"></td>
+                        <td class="text-end text-nowrap">
+                            <a class="btn btn-sm btn-light" th:href="@{/admin/users/{id}/edit(id=${u.id})}"><i class="bi bi-pencil"></i> Edit</a>
+                            <form class="d-inline" th:action="@{/admin/users/{id}/toggle(id=${u.id})}" method="post"
+                                  th:attr="data-confirm=${u.active ? 'Deactivate ' + u.fullName + '? They will not be able to log in.' : 'Reactivate ' + u.fullName + '?'}">
+                                <button class="btn btn-sm" th:classappend="${u.active} ? 'btn-outline-danger' : 'btn-outline-success'" type="submit"
+                                        th:text="${u.active} ? 'Deactivate' : 'Activate'">Toggle</button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

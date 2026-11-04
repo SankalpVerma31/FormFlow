@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Submission')}"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <main class="main">
+        <div class="form-narrow">
+            <a class="btn btn-light mb-3" th:href="${backUrl}"><i class="bi bi-arrow-left"></i> Back</a>
+            <div class="form-hero">
+                <h1 th:text="${event.title}">Event</h1>
+                <div class="small text-muted">
+                    Submitted by <strong th:text="${submission.user.fullName}"></strong>
+                    on <span th:text="${#temporals.format(submission.submittedAt, 'dd MMM yyyy, hh:mm a')}"></span> IST
+                    · Submission #<span th:text="${submission.id}"></span>
+                    <span th:if="${submission.attemptNo > 1}" th:text="${'· attempt ' + submission.attemptNo}"></span>
+                </div>
+            </div>
+            <div class="question-card" th:each="l : ${lines}">
+                <div class="fw-semibold mb-1" th:text="${l.question}">Question</div>
+                <div class="text-break" style="white-space: pre-wrap" th:text="${l.answer}">Answer</div>
+            </div>
+        </div>
+    </main>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

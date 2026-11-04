@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Results')}"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <main class="main">
+        <div class="form-narrow">
+            <div class="form-hero">
+                <h1 th:text="${event.title}">Title</h1>
+                <div class="small text-muted">Public results chosen by the organiser. Only totals are shown – never individual answers.</div>
+            </div>
+            <div th:if="${#lists.isEmpty(results)}" class="card empty-state">
+                <i class="bi bi-eye-slash"></i>No results have been made public yet.
+                <div class="small mt-1" th:if="${event.status.name() != 'CLOSED'}">Some results may appear after the deadline.</div>
+            </div>
+            <div class="question-card" th:each="r : ${results}">
+                <div class="fw-semibold mb-2" th:text="${r.title}">Title</div>
+                <div th:if="${r.value != null}" class="fs-3 fw-bold text-primary" th:text="${r.value}">0</div>
+                <th:block th:unless="${#lists.isEmpty(r.breakdown)}">
+                    <div th:each="b : ${r.breakdown}" class="mb-2">
+                        <div class="d-flex justify-content-between small"><span th:text="${b.label}"></span>
+                            <span><strong th:text="${b.count}"></strong> (<span th:text="${b.percentage + '%'}"></span>)</span></div>
+                        <div class="progress" style="height:8px"><div class="progress-bar" th:style="'width:' + ${b.percentage} + '%'"></div></div>
+                    </div>
+                </th:block>
+            </div>
+            <a class="btn btn-light mb-5" th:href="@{/participant}"><i class="bi bi-arrow-left"></i> Back</a>
+        </div>
+    </main>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

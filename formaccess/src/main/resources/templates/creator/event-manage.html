@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${event.title})}"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <main class="main">
+        <div th:replace="~{fragments/layout :: flash}"></div>
+
+        <!-- ===================== header & actions ===================== -->
+        <div class="page-header">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <h1 th:text="${event.title}">Event</h1>
+                    <span th:replace="~{fragments/layout :: status(${event.status})}"></span>
+                </div>
+                <p class="subtitle" th:text="${event.description}">Description</p>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <a class="btn btn-light" th:href="@{/creator/events/{id}/preview(id=${event.id})}"><i class="bi bi-eye me-1"></i>Preview</a>
+                <a class="btn btn-light" th:href="@{/creator/events/{id}/analytics(id=${event.id})}"><i class="bi bi-bar-chart me-1"></i>Analytics</a>
+                <a class="btn btn-light" th:href="@{/creator/events/{id}/submissions(id=${event.id})}"><i class="bi bi-table me-1"></i>Submissions</a>
+                <a class="btn btn-light" th:if="${event.status.name() != 'CLOSED'}" th:href="@{/creator/events/{id}/edit(id=${event.id})}"><i class="bi bi-pencil me-1"></i>Edit</a>
+                <form th:if="${event.status.name() == 'DRAFT'}" th:action="@{/creator/events/{id}/publish(id=${event.id})}" method="post"
+                      data-confirm="Publish this event? After publishing, questions can no longer be changed.">
+                    <button class="btn btn-primary" type="submit"><i class="bi bi-send me-1"></i>Publish</button>
+                </form>
+                <form th:if="${event.status.name() == 'OPEN' or event.status.name() == 'SCHEDULED'}" th:action="@{/creator/events/{id}/close(id=${event.id})}" method="post"
+                      data-confirm="Close submissions now? Nobody will be able to submit after this.">
+                    <button class="btn btn-warning" type="submit"><i class="bi bi-lock me-1"></i>Close submissions</button>
+                </form>
+                <form th:if="${progress.submitted == 0}" th:action="@{/creator/events/{id}/delete(id=${event.id})}" method="post"
+                      data-confirm="Delete this event permanently? This cannot be undone.">
+                    <button class="btn btn-outline-danger" type="submit"><i class="bi bi-trash"></i></button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ===================== numbers ===================== -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-lg-3"><div class="card stat-card"><div class="stat-label">Eligible participants</div><div class="stat-value" th:text="${progress.eligible}">0</div></div></div>
+            <div class="col-6 col-lg-3"><div class="card stat-card"><div class="stat-label">Submitted</div><div class="stat-value text-success" th:text="${progress.submitted}">0</div></div></div>
+            <div class="col-6 col-lg-3"><div class="card stat-card"><div class="stat-label">Pending</div><div class="stat-value text-warning" th:text="${progress.pending}">0</div></div></div>
+            <div class="col-6 col-lg-3"><div class="card stat-card"><div class="stat-label">Completion</div><div class="stat-value" th:text="${progress.percentage + '%'}">0%</div>
+                <div class="progress mt-2" style="height:6px"><div class="progress-bar" th:style="'width:' + ${progress.percentage} + '%'"></div></div></div></div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-xl-8">
+
+                <!-- ===================== share link ===================== -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap justify-content-between gap-3">
+                            <div>
+                                <div class="small text-muted">Opens</div>
+                                <div class="fw-semibold" th:text="${#temporals.format(event.startAt, 'dd MMM yyyy, hh:mm a')}"></div>
+                            </div>
+                            <div>
+                                <div class="small text-muted">Deadline (<span th:text="${event.deadlineMode}"></span>)</div>
+                                <div class="fw-semibold" th:text="${#temporals.format(event.deadlineAt, 'dd MMM yyyy, hh:mm a')}"></div>
+                            </div>
+                            <div>
+                                <div class="small text-muted">Multiple submissions</div>
+                                <div class="fw-semibold" th:text="${event.allowMultipleSubmissions} ? 'Allowed' : 'Not allowed'"></div>
+                            </div>
+                            <div>
+                                <div class="small text-muted">Auto reminder</div>
+                                <div class="fw-semibold" th:text="${event.autoReminderEnabled} ? ${event.reminderHoursBefore + ' h before'} : 'Off'"></div>
+                            </div>
+                        </div>
+                        <hr>
+                        <label class="form-label small text-muted mb-1">Share link (only eligible users can submit, even with the link)</label>
+                        <div class="input-group">
+                            <input class="form-control share-box" id="shareLink" th:value="${shareLink}" readonly>
+                            <button class="btn btn-outline-primary" type="button" data-copy="shareLink"><i class="bi bi-clipboard"></i> Copy</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===================== questions (form builder) ===================== -->
+                <div class="card mb-4" id="questions">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-ui-checks me-2"></i>Questions (<span th:text="${#lists.size(event.questions)}">0</span>)</span>
+                        <span th:unless="${event.editable}" class="small text-muted"><i class="bi bi-lock me-1"></i>Locked after publishing</span>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${#lists.isEmpty(event.questions)}" class="empty-state"><i class="bi bi-question-square"></i>No questions yet. Add the first one below.</div>
+
+                        <div class="builder-question" th:each="q, st : ${event.questions}">
+                            <div class="order" th:text="${st.count}">1</div>
+                            <div class="flex-grow-1">
+                                <div class="fw-semibold"><span th:text="${q.questionText}">Q</span> <span th:if="${q.required}" class="text-danger">*</span></div>
+                                <div class="small text-muted">
+                                    <span class="badge bg-primary-soft text-primary" th:text="${q.questionType.label}">Type</span>
+                                    <span th:if="${q.questionType.choice}" th:text="${#lists.size(q.options) + ' options'}"></span>
+                                    <span th:if="${q.minLength != null or q.maxLength != null}" th:text="${'length ' + (q.minLength ?: 0) + '–' + (q.maxLength ?: '∞')}"></span>
+                                    <span th:if="${q.minValue != null or q.maxValue != null}" th:text="${'range ' + (q.minValueText ?: '−∞') + ' to ' + (q.maxValueText ?: '∞')}"></span>
+                                    <span th:if="${q.ratingMax != null}" th:text="${'scale 1–' + q.ratingMax}"></span>
+                                    <span th:if="${q.defaultValue != null}" th:text="${'default: ' + q.defaultValue}"></span>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-1" th:if="${event.editable}">
+                                <form th:action="@{/creator/events/{e}/questions/{q}/move(e=${event.id},q=${q.id},dir='up')}" method="post">
+                                    <button class="btn btn-sm btn-light" type="submit" th:disabled="${st.first}" title="Move up"><i class="bi bi-arrow-up"></i></button></form>
+                                <form th:action="@{/creator/events/{e}/questions/{q}/move(e=${event.id},q=${q.id},dir='down')}" method="post">
+                                    <button class="btn btn-sm btn-light" type="submit" th:disabled="${st.last}" title="Move down"><i class="bi bi-arrow-down"></i></button></form>
+                                <a class="btn btn-sm btn-light" th:href="@{/creator/events/{e}/questions/{q}/edit(e=${event.id},q=${q.id})}" title="Edit"><i class="bi bi-pencil"></i></a>
+                                <form th:action="@{/creator/events/{e}/questions/{q}/delete(e=${event.id},q=${q.id})}" method="post" data-confirm="Delete this question?">
+                                    <button class="btn btn-sm btn-light text-danger" type="submit" title="Delete"><i class="bi bi-trash"></i></button></form>
+                            </div>
+                        </div>
+
+                        <div th:if="${event.editable}" class="mt-3">
+                            <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#addQuestion">
+                                <i class="bi bi-plus-lg me-1"></i>Add question</button>
+                            <div class="collapse mt-3" id="addQuestion" th:classappend="${#lists.isEmpty(event.questions)} ? 'show'">
+                                <div class="border rounded-3 p-3 bg-light">
+                                    <form th:action="@{/creator/events/{id}/questions(id=${event.id})}" th:object="${questionForm}" method="post" data-loading="Adding...">
+                                        <div th:replace="~{fragments/question :: config}"></div>
+                                        <button class="btn btn-primary mt-3" type="submit"><i class="bi bi-plus-lg me-1"></i>Add question</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===================== eligibility (rule builder) ===================== -->
+                <div class="card mb-4" id="eligibility">
+                    <div class="card-header"><i class="bi bi-shield-lock me-2"></i>Who can participate?</div>
+                    <div class="card-body">
+                        <p class="small text-muted">Conditions in the same group must <strong>all</strong> be true (AND).
+                            A user is eligible if <strong>any</strong> group matches (OR). Inactive accounts are never eligible.</p>
+
+                        <div th:if="${#maps.isEmpty(ruleGroups)}" class="alert alert-info small">
+                            <i class="bi bi-info-circle me-1"></i>No rules yet – <strong>every active user</strong> is eligible.</div>
+
+                        <th:block th:each="g, st : ${ruleGroups}">
+                            <div class="rule-or" th:unless="${st.first}">OR</div>
+                            <div class="rule-group">
+                                <div class="small fw-semibold text-muted mb-1" th:text="${'Group ' + g.key}">Group</div>
+                                <th:block th:each="r, rs : ${g.value}">
+                                    <span class="rule-and" th:unless="${rs.first}">AND</span>
+                                    <span class="rule-chip">
+                                        <span th:text="${r.attribute.label + ' ' + r.operator.symbol + ' ' + r.ruleValue}">rule</span>
+                                        <form class="d-inline" th:action="@{/creator/events/{e}/rules/{r}/delete(e=${event.id},r=${r.id})}" method="post"
+                                              th:if="${event.status.name() != 'CLOSED'}">
+                                            <button class="btn btn-sm p-0 px-1 text-danger border-0 bg-transparent" type="submit" title="Remove"><i class="bi bi-x-circle"></i></button>
+                                        </form>
+                                    </span>
+                                </th:block>
+                            </div>
+                        </th:block>
+
+                        <form th:if="${event.status.name() != 'CLOSED'}" class="row g-2 align-items-end mt-3"
+                              th:action="@{/creator/events/{id}/rules(id=${event.id})}" th:object="${ruleForm}" method="post">
+                            <div class="col-md-2">
+                                <label class="form-label small">Group</label>
+                                <select class="form-select" th:field="*{groupNo}">
+                                    <option th:each="g : ${ruleGroups}" th:value="${g.key}" th:text="${'Group ' + g.key + ' (AND)'}"></option>
+                                    <option th:value="${nextGroupNo}" th:text="${#maps.isEmpty(ruleGroups) ? 'Group 1' : 'New group (OR)'}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small">Attribute</label>
+                                <select class="form-select" th:field="*{attribute}" id="ruleAttribute">
+                                    <option th:each="a : ${ruleAttributes}" th:value="${a}" th:text="${a.label}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small">Operator</label>
+                                <select class="form-select" th:field="*{operator}">
+                                    <option th:each="o : ${ruleOperators}" th:value="${o}" th:text="${o.symbol + '  (' + o + ')'}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small">Value</label>
+                                <input class="form-control" th:field="*{ruleValue}" id="ruleValue" list="deptCodes" required>
+                                <datalist id="deptCodes">
+                                    <option th:each="d : ${departments}" th:value="${d.code}" th:text="${d.name}"></option>
+                                </datalist>
+                            </div>
+                            <div class="col-md-1"><button class="btn btn-primary w-100" type="submit" title="Add condition"><i class="bi bi-plus-lg"></i></button></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-4">
+                <!-- ===================== reminders ===================== -->
+                <div class="card mb-4" id="reminders">
+                    <div class="card-header"><i class="bi bi-bell me-2"></i>Pending participants (<span th:text="${#lists.size(pendingUsers)}">0</span>)</div>
+                    <div class="card-body">
+                        <div th:if="${event.status.name() == 'DRAFT'}" class="small text-muted">Publish the event to see who still has to respond.</div>
+                        <ul class="list-unstyled small mb-3" th:if="${event.status.name() != 'DRAFT'}" style="max-height: 220px; overflow-y: auto">
+                            <li th:each="u : ${pendingUsers}" class="py-1 border-bottom">
+                                <span class="fw-semibold" th:text="${u.fullName}"></span>
+                                <span class="text-muted" th:text="${'· ' + (u.departmentCode ?: '—') + (u.yearOfStudy != null ? ' · Y' + u.yearOfStudy : '')}"></span>
+                            </li>
+                            <li th:if="${#lists.isEmpty(pendingUsers)}" class="text-success"><i class="bi bi-check-circle me-1"></i>Everyone has submitted.</li>
+                        </ul>
+                        <form th:if="${event.status.name() == 'OPEN' and !#lists.isEmpty(pendingUsers)}" th:action="@{/creator/events/{id}/reminders(id=${event.id})}" method="post"
+                              data-confirm="Email a reminder to all pending participants?" data-loading="Sending...">
+                            <button class="btn btn-primary w-100" type="submit"><i class="bi bi-envelope me-1"></i>Send reminder now</button>
+                        </form>
+                        <div class="small text-muted mt-2">People reminded in the last <span th:text="${reminderGap}">12</span> hours are skipped.</div>
+
+                        <h6 class="mt-4 fw-semibold">Reminder history</h6>
+                        <ul class="list-unstyled small mb-0" style="max-height: 200px; overflow-y: auto">
+                            <li th:each="r : ${reminders}" class="py-1 border-bottom">
+                                <span th:text="${#temporals.format(r.sentAt, 'dd MMM, hh:mm a')}"></span> ·
+                                <span th:text="${r.user.fullName}"></span>
+                                <span class="badge bg-light text-dark" th:text="${r.reminderType}"></span>
+                                <span class="badge" th:classappend="${r.deliveryStatus.name() == 'SENT'} ? 'status-open' : 'status-closed'" th:text="${r.deliveryStatus}"></span>
+                            </li>
+                            <li th:if="${#lists.isEmpty(reminders)}" class="text-muted">No reminders sent yet.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- ===================== audit log ===================== -->
+                <div class="card">
+                    <div class="card-header"><i class="bi bi-journal-text me-2"></i>Activity</div>
+                    <ul class="list-group list-group-flush small" style="max-height: 320px; overflow-y: auto">
+                        <li class="list-group-item" th:each="a : ${auditLogs}">
+                            <div class="d-flex justify-content-between"><strong th:text="${a.action}"></strong>
+                                <span class="text-muted" th:text="${#temporals.format(a.createdAt, 'dd MMM, hh:mm a')}"></span></div>
+                            <div class="text-muted"><span th:text="${a.actor != null ? a.actor.fullName : 'System'}"></span> – <span th:text="${a.details}"></span></div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

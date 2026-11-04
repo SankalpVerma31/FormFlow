@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('My events')}"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <main class="main">
+        <div th:replace="~{fragments/layout :: flash}"></div>
+        <div class="page-header">
+            <div><h1>My events</h1><p class="subtitle">Create forms, choose who may answer, track progress.</p></div>
+            <a class="btn btn-primary" th:href="@{/creator/events/new}"><i class="bi bi-plus-lg me-1"></i> New event</a>
+        </div>
+
+        <div th:if="${#lists.isEmpty(events)}" class="card empty-state">
+            <i class="bi bi-ui-checks"></i>
+            <p>You have not created any events yet.</p>
+            <a class="btn btn-primary" th:href="@{/creator/events/new}">Create your first event</a>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-6 col-xl-4" th:each="p : ${events}">
+                <a class="text-decoration-none text-reset" th:href="@{/creator/events/{id}(id=${p.event.id})}">
+                    <div class="card event-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="fw-bold mb-0" th:text="${p.event.title}">Title</h5>
+                                <span th:replace="~{fragments/layout :: status(${p.event.status})}"></span>
+                            </div>
+                            <div class="small text-muted mb-3">
+                                <i class="bi bi-calendar-event me-1"></i>Deadline
+                                <span th:text="${#temporals.format(p.event.deadlineAt, 'dd MMM yyyy, hh:mm a')}"></span>
+                                <span class="badge bg-light text-dark ms-1" th:text="${p.event.deadlineMode}"></span>
+                            </div>
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span><strong th:text="${p.submitted}">0</strong> of <span th:text="${p.eligible}">0</span> submitted</span>
+                                <span th:text="${p.percentage + '%'}">0%</span>
+                            </div>
+                            <div class="progress" style="height:8px">
+                                <div class="progress-bar" th:style="'width:' + ${p.percentage} + '%'"></div>
+                            </div>
+                            <div class="small text-muted mt-2"><i class="bi bi-hourglass-split me-1"></i><span th:text="${p.pending}">0</span> pending</div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </main>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

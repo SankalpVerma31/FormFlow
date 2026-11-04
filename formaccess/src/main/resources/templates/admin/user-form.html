@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('User')}"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <main class="main">
+        <div th:replace="~{fragments/layout :: flash}"></div>
+        <div class="page-header">
+            <div><h1 th:text="${userForm.id == null} ? 'Add user' : 'Edit user'">User</h1>
+                <p class="subtitle">Admins can create creators and other admins here.</p></div>
+            <a class="btn btn-light" th:href="@{/admin/users}"><i class="bi bi-arrow-left"></i> Back</a>
+        </div>
+        <div class="card" style="max-width: 760px">
+            <div class="card-body">
+                <form th:action="@{/admin/users/save}" th:object="${userForm}" method="post" novalidate>
+                    <input type="hidden" th:field="*{id}">
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label">Full name</label>
+                            <input class="form-control" th:field="*{fullName}" th:errorclass="is-invalid">
+                            <div class="invalid-feedback" th:errors="*{fullName}"></div></div>
+                        <div class="col-md-6"><label class="form-label">Email</label>
+                            <input type="email" class="form-control" th:field="*{email}" th:errorclass="is-invalid">
+                            <div class="invalid-feedback" th:errors="*{email}"></div></div>
+                        <div class="col-md-6"><label class="form-label">Password
+                            <span class="text-muted small" th:if="${userForm.id != null}">(leave blank to keep current)</span></label>
+                            <input type="password" class="form-control" th:field="*{password}" autocomplete="new-password"></div>
+                        <div class="col-md-6"><label class="form-label">Department</label>
+                            <select class="form-select" th:field="*{deptId}">
+                                <option value="">-- None --</option>
+                                <option th:each="d : ${departments}" th:value="${d.id}" th:text="${d.code + ' – ' + d.name}"></option>
+                            </select></div>
+                        <div class="col-md-4"><label class="form-label">Year</label>
+                            <select class="form-select" th:field="*{yearOfStudy}">
+                                <option value="">-- None --</option>
+                                <option th:each="y : ${#numbers.sequence(1,5)}" th:value="${y}" th:text="${y}"></option>
+                            </select></div>
+                        <div class="col-md-4"><label class="form-label">Role</label>
+                            <select class="form-select" th:field="*{role}">
+                                <option th:each="r : ${roles}" th:value="${r}" th:text="${r}"></option>
+                            </select></div>
+                        <div class="col-md-4"><label class="form-label">Account status</label>
+                            <select class="form-select" th:field="*{accountStatus}">
+                                <option th:each="s : ${accountStatuses}" th:value="${s}" th:text="${s}"></option>
+                            </select></div>
+                    </div>
+                    <div class="mt-4"><button class="btn btn-primary" type="submit"><i class="bi bi-check2 me-1"></i>Save user</button></div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

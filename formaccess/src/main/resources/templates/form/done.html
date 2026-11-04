@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Submitted')}"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <main class="main">
+        <div class="form-narrow">
+            <div class="form-hero text-center py-5">
+                <div class="mb-3 text-success" style="font-size: 3.5rem"><i class="bi bi-check-circle-fill"></i></div>
+                <h2 class="fw-bold">Response recorded</h2>
+                <p class="lead text-muted">Thank you! Your answers to <strong th:text="${event.title}"></strong> were saved.</p>
+                <p class="small text-muted">Submission #<span th:text="${submission.id}"></span> ·
+                    <span th:text="${#temporals.format(submission.submittedAt, 'dd MMM yyyy, hh:mm:ss a')}"></span> IST</p>
+                <div class="d-flex justify-content-center gap-2 mt-4">
+                    <a class="btn btn-primary" th:href="@{/participant/submissions/{id}(id=${submission.id})}">View my answers</a>
+                    <a class="btn btn-outline-primary" th:href="@{/participant}">Back to my forms</a>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

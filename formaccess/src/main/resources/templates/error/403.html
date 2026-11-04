@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Access denied')}"></head>
+<body>
+<div class="auth-wrap">
+    <div class="card p-5 text-center" style="max-width: 520px">
+        <div class="text-danger mb-3" style="font-size: 3rem"><i class="bi bi-shield-x"></i></div>
+        <h2 class="fw-bold">403 – Access denied</h2>
+        <p class="text-muted" th:text="${message != null and message != '' and message != 'No message available' ? message : 'You do not have permission to view this page.'}">You do not have permission to view this page.</p>
+        <div class="d-flex justify-content-center gap-2 mt-3">
+            <a class="btn btn-primary" th:href="@{/dashboard}">Go to dashboard</a>
+            <a class="btn btn-light" th:href="@{/}">Home</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Admin')}"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <main class="main">
+        <div th:replace="~{fragments/layout :: flash}"></div>
+        <div class="page-header">
+            <div><h1>Platform overview</h1><p class="subtitle">Everything happening on FormAccess.</p></div>
+            <a class="btn btn-primary" th:href="@{/admin/users/new}"><i class="bi bi-person-plus me-1"></i> Add user</a>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-sm-6 col-xl-3"><div class="card stat-card"><div class="d-flex justify-content-between">
+                <div><div class="stat-label">Total users</div><div class="stat-value" th:text="${counts['users']}">0</div></div>
+                <div class="stat-icon"><i class="bi bi-people"></i></div></div>
+                <div class="small text-muted mt-1" th:text="${counts['admins'] + ' admin · ' + counts['creators'] + ' creators · ' + counts['participants'] + ' participants'}"></div></div></div>
+            <div class="col-sm-6 col-xl-3"><div class="card stat-card"><div class="d-flex justify-content-between">
+                <div><div class="stat-label">Total events</div><div class="stat-value" th:text="${counts['events']}">0</div></div>
+                <div class="stat-icon"><i class="bi bi-collection"></i></div></div>
+                <div class="small text-muted mt-1" th:text="${counts['draft'] + ' draft · ' + counts['scheduled'] + ' scheduled'}"></div></div></div>
+            <div class="col-sm-6 col-xl-3"><div class="card stat-card"><div class="d-flex justify-content-between">
+                <div><div class="stat-label">Active (open) events</div><div class="stat-value text-success" th:text="${counts['open']}">0</div></div>
+                <div class="stat-icon"><i class="bi bi-broadcast"></i></div></div></div></div>
+            <div class="col-sm-6 col-xl-3"><div class="card stat-card"><div class="d-flex justify-content-between">
+                <div><div class="stat-label">Closed events</div><div class="stat-value text-danger" th:text="${counts['closed']}">0</div></div>
+                <div class="stat-icon"><i class="bi bi-lock"></i></div></div></div></div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">Quick actions</div>
+                    <div class="list-group list-group-flush">
+                        <a class="list-group-item list-group-item-action" th:href="@{/admin/users}"><i class="bi bi-people me-2"></i>Manage users</a>
+                        <a class="list-group-item list-group-item-action" th:href="@{/admin/users/new}"><i class="bi bi-person-plus me-2"></i>Add a user / creator</a>
+                        <a class="list-group-item list-group-item-action" th:href="@{/admin/events}"><i class="bi bi-collection me-2"></i>All events</a>
+                        <a class="list-group-item list-group-item-action" th:href="@{/creator/events/new}"><i class="bi bi-plus-circle me-2"></i>Create an event</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">Recent activity</div>
+                    <div class="table-responsive">
+                        <table class="table mb-0 align-middle">
+                            <thead><tr><th>When</th><th>Who</th><th>Event</th><th>Action</th></tr></thead>
+                            <tbody>
+                            <tr th:each="a : ${activity}">
+                                <td class="small text-muted text-nowrap" th:text="${#temporals.format(a.createdAt, 'dd MMM, hh:mm a')}"></td>
+                                <td th:text="${a.actor != null ? a.actor.fullName : 'System'}"></td>
+                                <td th:text="${a.event != null ? a.event.title : '—'}"></td>
+                                <td><span class="badge bg-light text-dark" th:text="${a.action}"></span>
+                                    <div class="small text-muted" th:text="${a.details}"></div></td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(activity)}"><td colspan="4" class="empty-state">No activity yet.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>
