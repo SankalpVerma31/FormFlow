@@ -7,6 +7,6 @@ RUN mvn clean package -DskipTests
 # Step 2: Run the built JAR file with Java 21
 FROM eclipse-temurin:21-jre
 WORKDIR /app
-COPY --from=build /app/formaccess/target/formaccess-1.0.0.jar app.jar
+COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
