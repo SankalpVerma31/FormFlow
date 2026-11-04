@@ -44,13 +44,13 @@
         <select th:case="'DROPDOWN'" class="form-select" th:id="${name}" th:name="${name}" th:required="${q.required}">
             <option value="">-- Choose --</option>
             <option th:each="o : ${q.options}" th:value="${o.id}" th:text="${o.optionText}"
-                    th:selected="${qv.selected.contains(o.id)}">Option</option>
+                    th:selected="${qv.selected != null && qv.selected.contains(o.id)}">Option</option>
         </select>
 
         <div th:case="'RADIO'">
             <div class="form-check" th:each="o : ${q.options}">
                 <input class="form-check-input" type="radio" th:name="${name}" th:id="${name + '_' + o.id}"
-                       th:value="${o.id}" th:checked="${qv.selected.contains(o.id)}" th:required="${q.required}">
+                       th:value="${o.id}" th:checked="${qv.selected != null && qv.selected.contains(o.id)}" th:required="${q.required}">
                 <label class="form-check-label" th:for="${name + '_' + o.id}" th:text="${o.optionText}">Option</label>
             </div>
         </div>
@@ -58,7 +58,7 @@
         <div th:case="'CHECKBOX'">
             <div class="form-check" th:each="o : ${q.options}">
                 <input class="form-check-input" type="checkbox" th:name="${name}" th:id="${name + '_' + o.id}"
-                       th:value="${o.id}" th:checked="${qv.selected.contains(o.id)}">
+                       th:value="${o.id}" th:checked="${qv.selected != null && qv.selected.contains(o.id)}">
                 <label class="form-check-label" th:for="${name + '_' + o.id}" th:text="${o.optionText}">Option</label>
             </div>
         </div>
@@ -88,72 +88,72 @@
     <div th:if="${qv.error != null}" class="text-danger small mt-2"><i class="bi bi-exclamation-circle me-1"></i><span th:text="${qv.error}">Error</span></div>
 </div>
 
-<!-- Settings of a question in the builder (used by "add" and "edit"). Needs th:object="${questionForm}". -->
-<th:block th:fragment="config" th:object="${questionForm}">
+<!-- Settings of a question in the builder (used by "add" and "edit") -->
+<th:block th:fragment="config">
     <div class="row g-3">
         <div class="col-md-8">
             <label class="form-label">Question</label>
-            <input type="text" class="form-control" th:field="*{questionText}" required maxlength="500" placeholder="e.g. What is your team name?">
+            <input type="text" class="form-control" name="questionText" th:value="${questionForm?.questionText}" required maxlength="500" placeholder="e.g. What is your team name?">
         </div>
         <div class="col-md-4">
             <label class="form-label">Type</label>
-            <select class="form-select" th:field="*{questionType}" data-type-select>
-                <option th:each="t : ${questionTypes}" th:value="${t}" th:text="${t.label}">Type</option>
+            <select class="form-select" name="questionType" data-type-select>
+                <option th:each="t : ${questionTypes}" th:value="${t}" th:text="${t.label}" th:selected="${questionForm != null && questionForm.questionType == t}">Type</option>
             </select>
         </div>
         <div class="col-md-8">
             <label class="form-label">Help text <span class="text-muted small">(optional)</span></label>
-            <input type="text" class="form-control" th:field="*{helpText}" maxlength="500">
+            <input type="text" class="form-control" name="helpText" th:value="${questionForm?.helpText}" maxlength="500">
         </div>
         <div class="col-md-4 d-flex align-items-end">
             <div class="form-check form-switch mb-2">
-                <input class="form-check-input" type="checkbox" th:field="*{required}">
-                <label class="form-check-label" th:for="${#ids.prev('required')}">Required</label>
+                <input class="form-check-input" type="checkbox" name="required" id="questionRequired" th:checked="${questionForm != null && questionForm.required}">
+                <label class="form-check-label" for="questionRequired">Required</label>
             </div>
         </div>
 
         <div class="col-12" data-show-for="DROPDOWN RADIO CHECKBOX">
             <label class="form-label">Options <span class="text-muted small">(one per line, at least 2)</span></label>
-            <textarea class="form-control" rows="4" th:field="*{optionsText}" placeholder="Option A&#10;Option B&#10;Option C"></textarea>
+            <textarea class="form-control" rows="4" name="optionsText" th:text="${questionForm?.optionsText}" placeholder="Option A&#10;Option B&#10;Option C"></textarea>
         </div>
 
         <div class="col-md-6" data-show-for="SHORT_TEXT LONG_TEXT INTEGER DECIMAL EMAIL DATE TIME YES_NO RATING">
             <label class="form-label">Default value <span class="text-muted small">(optional)</span></label>
-            <input type="text" class="form-control" th:field="*{defaultValue}" placeholder="e.g. 2, YES, 2026-12-01, 10:30">
+            <input type="text" class="form-control" name="defaultValue" th:value="${questionForm?.defaultValue}" placeholder="e.g. 2, YES, 2026-12-01, 10:30">
         </div>
 
         <div class="col-md-3" data-show-for="SHORT_TEXT LONG_TEXT EMAIL">
             <label class="form-label">Min length</label>
-            <input type="number" min="0" class="form-control" th:field="*{minLength}">
+            <input type="number" min="0" class="form-control" name="minLength" th:value="${questionForm?.minLength}">
         </div>
         <div class="col-md-3" data-show-for="SHORT_TEXT LONG_TEXT EMAIL">
             <label class="form-label">Max length</label>
-            <input type="number" min="1" class="form-control" th:field="*{maxLength}">
+            <input type="number" min="1" class="form-control" name="maxLength" th:value="${questionForm?.maxLength}">
         </div>
 
         <div class="col-md-3" data-show-for="INTEGER DECIMAL">
             <label class="form-label">Min value</label>
-            <input type="number" step="any" class="form-control" th:field="*{minValue}">
+            <input type="number" step="any" class="form-control" name="minValue" th:value="${questionForm?.minValue}">
         </div>
         <div class="col-md-3" data-show-for="INTEGER DECIMAL">
             <label class="form-label">Max value</label>
-            <input type="number" step="any" class="form-control" th:field="*{maxValue}">
+            <input type="number" step="any" class="form-control" name="maxValue" th:value="${questionForm?.maxValue}">
         </div>
 
         <div class="col-md-3" data-show-for="DATE">
             <label class="form-label">Earliest date</label>
-            <input type="date" class="form-control" th:field="*{minDate}">
+            <input type="date" class="form-control" name="minDate" th:value="${questionForm?.minDate}">
         </div>
         <div class="col-md-3" data-show-for="DATE">
             <label class="form-label">Latest date</label>
-            <input type="date" class="form-control" th:field="*{maxDate}">
+            <input type="date" class="form-control" name="maxDate" th:value="${questionForm?.maxDate}">
         </div>
 
         <div class="col-md-3" data-show-for="RATING">
             <label class="form-label">Rating scale</label>
-            <select class="form-select" th:field="*{ratingMax}">
-                <option th:value="5">1 to 5</option>
-                <option th:value="10">1 to 10</option>
+            <select class="form-select" name="ratingMax">
+                <option th:value="5" th:selected="${questionForm != null && questionForm.ratingMax == 5}">1 to 5</option>
+                <option th:value="10" th:selected="${questionForm != null && questionForm.ratingMax == 10}">1 to 10</option>
             </select>
         </div>
     </div>
